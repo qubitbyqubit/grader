@@ -9,7 +9,7 @@
 #                                      --> expected_output
 #
 # Here's an example:
-# day5lc_key --> problem1 --> tc1 --> {...} # dictionary of key : value of var_name : var_val
+# day5lc_key --> problem1 --> tc1 --> {...} # dictionary of [key : value] of var_name : var_val
 #                                 --> "Yes" 
-#            --> problem2 --> tc1 --> {...} # dictionary of key : value of var_name : var_val
+#            --> problem2 --> tc1 --> {...} # dictionary of [key : value] of var_name : var_val
 #                                 --> 4
