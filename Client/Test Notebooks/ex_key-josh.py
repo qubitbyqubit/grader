@@ -13,3 +13,5 @@
 #                                 --> "Yes" 
 #            --> problem2 --> tc1 --> {...} # dictionary of [key : value] of var_name : var_val
 #                                 --> 4
+
+from Client import key_class as kc
