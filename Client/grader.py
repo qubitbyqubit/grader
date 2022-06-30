@@ -5,7 +5,10 @@ grader_url = ""
 class create_grader:
 	def __init__(self,glob, assignmentid):
 		self.glob = glob
-		valid_notebook_id  = True
+
+		# check to see if a valid notebook
+		r = requests.get(f"http://127.0.0.1:5000/notebook_id/{assignmentid}")
+		valid_notebook_id  = (r.text == "valid notebook")
 		if valid_notebook_id:
 			print("Grader ready!")
 		else:

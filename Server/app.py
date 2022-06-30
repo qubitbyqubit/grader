@@ -1,4 +1,7 @@
-from flask import Flask
+from flask import Flask, request
+import json 
+import pickle
+import jsonpickle
 app = Flask(__name__)
 
 
@@ -6,16 +9,23 @@ app = Flask(__name__)
 def index():
 	return "nothing"
 
-@app.get('/check_answers/<notebook_id>')
-def check_answers(notebook_id):
-	# Checking logic here
-	print(notebook_id)
-	return "this was a post"
+@app.post('/check_answers/')
+def check_answers():
+	data = request.form['req']
+	dic = json.loads(data)
+	print(dic)
+
+	response = {
+		"response": "Success"
+	}
+
+	return json.dumps(response)
 
 @app.get('/notebook_id/<notebook_id>')
 def verify_notebook(notebook_id):
 	notebook_id_set = {"001", "002", "003"}
 	if notebook_id in notebook_id_set:
+		# Return json object containing info about the homework
 		return "valid notebook"
 	else:
 		return "invalid notebook"
