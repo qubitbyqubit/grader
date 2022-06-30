@@ -1,5 +1,5 @@
 class TestCase():
-    def __init__(self, inputs: dict, expected_output):
+    def __init__(self, inputs: list, expected_output):
         self.inputs = inputs
         self.outputs = expected_output
 
@@ -28,10 +28,11 @@ class Problem():
 
 class Key():
     def __init__(self, filename: str, assignment_id: int):
-        self.problems = self.load_information(filename)
-        self.id = assignment_id
+        DATA = self.load_information(filename)
+        self.problems = DATA[0]
+        self.id = DATA[1]
 
-    def load_information(self, filename: str):
+    def load_information(self, filename: str) -> tuple:
         # TODO
         raise NotImplementedError
 

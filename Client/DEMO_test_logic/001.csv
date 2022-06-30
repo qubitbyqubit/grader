@@ -1,2 +1,7 @@
 ﻿id,problem_num,tc_num,tc_input,tc_output
-001',1,1,{},n
+001',1,1,['III'],3
+,,2,['LVIII'],58
+,,3,['MCMXCIV'],1994
+,2,1,"['a','b']",FALSE
+,,2,"['aa','ab']",FALSE
+,,3,"['aa','aab']",TRUE
