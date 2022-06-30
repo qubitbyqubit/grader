@@ -14,4 +14,5 @@
 #            --> problem2 --> tc1 --> {...} # dictionary of [key : value] of var_name : var_val
 #                                 --> 4
 
-from Client import key_class as kc
+from DEMO_test_logic import key_class as kc
+kc.Key('/Client/DEMO_test_logic/001.csv')
