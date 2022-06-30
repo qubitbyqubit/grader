@@ -117,5 +117,3 @@ class Key():
         
     def __str__(self):
         return (f'This is the key data for assignment {self.id}')
-
-    
