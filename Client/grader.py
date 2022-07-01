@@ -25,7 +25,7 @@ class create_grader:
 		student_JSON_str = requests.post(f"http://127.0.0.1:5000/{self.get_assignid()}/{self.get_student_id()}")
 		graded_assignment = requests.post(f"http://127.0.0.1:5000/check_answers/{self.get_assignid()}/{student_JSON_str}")
 		
-		return 'Correct key generated and prepared to sheck against student answers.'
+		return graded_assignment.text
 
 
 	def __send_answers(self):

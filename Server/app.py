@@ -43,6 +43,8 @@ def check_answers(assignment_id, student_JSON_str):
 		answer_key = key.Key(f'keys/{assignment_id}')
 		return answer_key
 
+	key = key_gen('001')
+
 	return 'Key generated and ready for comparing student data.'
 	# data = request.form['req']
 	# decoded_pickle = base64.b64decode(data)
