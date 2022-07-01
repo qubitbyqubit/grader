@@ -1,5 +1,5 @@
 {
-	"READ_ME" : "Enter a problem as------- problemn : {tcn : {input : data, output: data},...} and enter functions as strings surrounded by %%",
+	"READ_ME" : "Enter a problem as------- problemn : {tcn : {input : data, output: data},...} and enter functions as strings prefaced by a f/",
 
 	"id" : "001",
 
