@@ -35,26 +35,34 @@ def index(notebook_id, student_id):
 	data = json.dumps(example_return)
 	return data
 
-@app.post('/check_answers/')
-def check_answers():
-	data = request.form['req']
-	decoded_pickle = base64.b64decode(data)
-	new_func = pickle.loads(decoded_pickle)
-	print(type(new_func))
+@app.post('/check_answers/<assignment_id>/<student_JSON_str>')
+def check_answers(assignment_id, student_JSON_str):
+	# instantiates key
+	def key_gen(assignment_id):
+		import key
+		answer_key = key.Key(f'keys/{assignment_id}')
+		return answer_key
+
+	return 'Key generated and ready for comparing student data.'
+	# data = request.form['req']
+	# decoded_pickle = base64.b64decode(data)
+	# new_func = pickle.loads(decoded_pickle)
+	# print(type(new_func))
+
 	# dic = json.loads(data)
 	# print(dic)
 
-	response = {
-		"response": "Success"
-	}
+	# response = {
+	# 	"response": "Success"
+	# }
 
-	return json.dumps(response)
+	# return json.dumps(response)
 
 @app.get('/notebook_id/<notebook_id>')
 def verify_notebook(notebook_id):
 	notebook_id_set = {"001", "002", "003"}
 	if notebook_id in notebook_id_set:
-		# Return json object containing info about the homework
+		# Return json object containing assignment information.
 		return "valid notebook"
 	else:
 		return "invalid notebook"

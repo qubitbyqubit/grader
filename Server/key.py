@@ -1,9 +1,8 @@
 class TestCase():
-    def __init__(self, inputs: list, output, number : int, assignment_id: int):
+    def __init__(self, inputs: list, output, number : int):
         self.inputs = inputs
         self.outputs = output
         self.num = number
-        self.id = assignment_id
 
     def get_inputs(self):
         return self.inputs
@@ -13,9 +12,6 @@ class TestCase():
 
     def get_num(self):
         return self.num
-
-    def get_id(self):
-        return self.id
 
     def __repr__(self):
         return (f'This test case supplies {self.get_inputs} as inputs and has an expected output of {self.get_outputs}.')
@@ -123,7 +119,7 @@ class Key():
                 elif type(tc_inputs) is list:
                     tc_inputs = self.PARSE_for_func(tc_inputs)
 
-                prob_tcs.append(TestCase(tc_inputs, tc_data['output'], tc_n, self.get_id()))
+                prob_tcs.append(TestCase(tc_inputs, tc_data['output'], tc_n))
                 print(f'Test Case {tc_n} processed successfully.')
 
             list_prob.append(Problem(prob_tcs, prob_n, self.get_id()))
