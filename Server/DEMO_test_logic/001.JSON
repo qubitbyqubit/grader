@@ -3,8 +3,14 @@
 
 	"id" : "001",
 
-	"problem1" : { "tc1" : { "input" : "III", "output" : 3}, "tc2" : {"input" : "LVIII", "output" : 58}, "tc3" : { "input" : "MCMXCIV", "output" : 1994} },
+	"problem1" : {
+		"tc1" : {"input" : "III", "output" : 3},
+		"tc2" : {"input" : "LVIII", "output" : 58}, 
+		"tc3" : {"input" : "MCMXCIV", "output" : 1994} },
 
-	"problem2" : { "tc1" : { "input" : ["a", "b"], "output" : false}, "tc2" : {"input" : ["aa", "ab"], "output" : false}, "tc3" : { "input" : ["aa", "aab"], "output" : true} }
+	"problem2" : { 
+		"tc1" : {"input" : ["a", "b"], "output" : false}, 
+		"tc2" : {"input" : ["aa", "ab"], "output" : false}, 
+		"tc3" : {"input" : ["aa", "aab"], "output" : true} }
 
 }
