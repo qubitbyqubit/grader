@@ -1,7 +1,7 @@
 class TestCase():
-    def __init__(self, inputs: list, expected_output, number : int, assignment_id: int):
-        self.inputs = self.transform_inputs(inputs)
-        self.outputs = self.transform_output(expected_output)
+    def __init__(self, inputs: list, output, number : int, assignment_id: int):
+        self.inputs = inputs
+        self.outputs = output
         self.num = number
         self.id = assignment_id
 
@@ -11,63 +11,11 @@ class TestCase():
     def get_outputs(self):
         return self.outputs
 
-    def transform_inputs(self, inputs: str):
-        if len(inputs) == 0:
-            raise Exception('No input variables found.')
+    def get_num(self):
+        return self.num
 
-        for i in range(len(inputs)):
-            if inputs[i].isdigit():
-                inputs[i] = int(inputs[i])
-
-            elif inputs[i].lower == 'false':
-                inputs[i] == False
-
-            elif inputs[i].lower == 'True':
-                inputs[i] == True 
-
-            elif inputs[i][0] == '[' or inputs[i][-1] == ']':
-                inputs[i] = inputs[i][1:len(inputs[i])-1].split(',')
-
-            elif inputs[i][0] == '(' or inputs[i][-1] == ')':
-                inputs[i] = tuple(inputs[i][1:len(inputs[i])-1].split(','))
-
-            elif inputs[i][0] == '{' or inputs[i][-1] == '}':
-                raise TypeError('Dictionary detected. No support available. please choose a new data type.')
-
-            else:
-                try:
-                    inputs[i] = float(inputs[i])
-
-                except:
-                    pass
-
-        return inputs
-
-    def transform_output(self, output):
-        if output.isdigit():
-            return int(output)
-
-        elif output.lower() == 'false':
-            return False
-
-        elif output.lower() == 'true':
-            return True 
-
-        elif output[0] == '[' or output[-1] == ']':
-            return output[1:len(output)-1].split(',')
-
-        elif output[0] == '(' or output[-1] == ')':
-           return tuple(output[1:len(output)-1].split(','))
-
-        elif output[0] == '{' or output[-1] == '}':
-            raise TypeError('Dictionary detected. No support available. please choose a new data type.')
-
-        else:
-            try:
-                output = float(output)
-
-            except:
-                print('Sequence of "_" separated strings detected.')
+    def get_id(self):
+        return self.id
 
     def __repr__(self):
         return (f'This test case supplies {self.get_inputs} as inputs and has an expected output of {self.get_outputs}.')
@@ -98,81 +46,106 @@ class Problem():
         return (f'This is problem {self.get_number()} for assignment {self.id} with {len(self.get_testcases())} test case(s)')
 
 class Key():
-    def __init__(self, filename: str, readable=False):
-        self.readable = readable
-        DATA = self.load_information(filename)
-        self.problems = DATA[0]
+    def __init__(self, filename: str):
+        self.filename = filename
+
+        try:
+            data = self.load_information(self.filename)
+            self.data = data
+            self.id = data['id']
+            print(f'Data retrieved and saved successfully.')
+
+        except:
+            raise Exception('Could not load the intended file. File not found.')
+        
+        try:
+            key_data = self.process_data(data)
+            self.problems = key_data
+
+        except:
+            raise Exception('Unable to process data at this time.')
+
+        print()
+        print(f'Key for assignment {self.get_id()} generated.')
+        
 
     def load_information(self, filename: str) -> list:
+        import json
+        
+        with open(filename, 'r') as file:
+            print(f'Opening file with path: {filename}')
+            data = json.load(file)
+        
+        return data
 
-        if self.readable:
-            print(f'Now processing the answer key with filename {filename}.')
+    def process_data(self, data: dict):
+        print('Now processing data.')
 
-        DATA = [[], None]
-        import csv
+        n = 0 # check to see how many problems there are.
+        while(True):
+            n += 1
+            if (f'problem{n}') not in data:
+                n -= 1
+                break
 
-        with open(filename, newline='') as file:
-            if self.readable:
-                print(f'File opened.')
-            reader = csv.reader(file,delimiter='\t')
-            data = list(reader)
+        if n == 0:
+            raise Exception('No problem data found. Please check your JSON file.')
+        
+        print(f'Found {n} problems.')
 
-        for i in range(1,len(data)):
-            problem_tracker = 0
+        list_prob = []
+
+        for prob_n in range(1,n+1):
+            problem_data = data[f'problem{prob_n}']
+
+            m = 0 # check to see how many test cases there are.
+            while(True):
+                m += 1
+                if (f'tc{m}') not in problem_data:
+                    m -= 1
+                    break
+
+            if m == 0:
+                raise Exception('No test case data found. Please check your JSON file.')
+
+            print()
+            print(f'Found {m} test cases for problem {prob_n}.')
+
+            prob_tcs = []
             
-            if self.readable:
-                print(f'Now processing {data[i]}.')
-            
-            if i == 1:
-                if self.readable:
-                    print(f'Found assignment_id: {data[i][0]}.')
+            for tc_n in range(1,m+1):
+                tc_data = problem_data[f'tc{tc_n}']
+                tc_inputs = tc_data['input']
 
-                DATA[1] = data[i][0]
-                self.id = data[i][0]
+                if type(tc_inputs) is str and tc_inputs[0:2] == 'f/':
+                    tc_inputs = eval(tc_inputs[2:] + '()')
 
-            if data[i][1] != '' and data[i][2] == '1':
-                
-                if self.readable:
-                    print('New Problem detected!')
+                elif type(tc_inputs) is list:
+                    tc_inputs = self.PARSE_for_func(tc_inputs)
 
-                problem_tracker += 1
+                prob_tcs.append(TestCase(tc_inputs, tc_data['output'], tc_n, self.get_id()))
+                print(f'Test Case {tc_n} processed successfully.')
 
-                inputs = data[i][3].split('_')
-                output = data[i][4]
+            list_prob.append(Problem(prob_tcs, prob_n, self.get_id()))
+            print(f'Problem {prob_n} processed successfully.')
 
-                tc = TestCase(inputs, output, int(data[i][2]), self.get_id())
-                problem = Problem([tc],int(data[i][1]), self.get_id())
+        return list_prob
 
-                DATA[0].append(problem)
+    def PARSE_for_func(self, list):
+        for i in range(len(list)):
+            if type(list[i]) is str and list[i][0:2] == 'f/':
+                list[i] = eval(list[i][2:] + '()')
 
-            elif data[i][1] == '' and data[i][2] != 1:
-                if self.readable:
-                    print('New TestCase found!')
-                
-                inputs = data[i][3].split('_')
-                output = data[i][4]
+            elif type(list[i]) is list:
+                list[i] = self.PARSE_for_func(list[i])
 
-                tc = TestCase(inputs, output, int(data[i][2]), self.get_id())
-
-                DATA[0][-1].add_tc(tc)
-
-        if self.readable:
-            print(f'Parsing complete.')
-            print(f'Did you expect the following? (y,n)')
-            print(DATA[0])
-
-            ver = input()
-
-            if ver.lower() != 'y':
-                raise Exception('Parsing Unsuccessful. Something went wrong...')
-
-            else:
-                print(f'Loading successful. Ending function.')
-
-        return DATA
-
+        return list
+        
     def get_id(self):
         return self.id
-        
+
+    def get_problems(self):
+        return self.problems
+
     def __str__(self):
         return (f'This is the key data for assignment {self.id}')
