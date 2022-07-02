@@ -66,8 +66,7 @@ class Key():
         except:
             raise Exception('Unable to process data at this time.')
 
-        print()
-        print(f'Key for assignment {self.get_id()} generated.')
+        print(f'Key for assignment {filename[5:len(filename)-5:]} generated.')
         
 
     def load_information(self, filename: str) -> list:
@@ -91,7 +90,7 @@ class Key():
                 for test_case in problem['checking_data']:
                     list_tc.append(Test_Case(test_case['input'],test_case['output']))
 
-                list_problems.append(Problem(list_tc, problem["problem_number"], problem['func_type'], problem['func_name']))
+                list_problems.append(Problem(list_tc, problem["problem_number"], problem['checking_type'], problem['func_name']))
 
             elif problem['checking_type'] == 'Equality_Check':
                 list_ec = []
