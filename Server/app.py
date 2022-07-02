@@ -35,17 +35,20 @@ def index(notebook_id, student_id):
 	data = json.dumps(example_return)
 	return data
 
-@app.post('/check_answers/<assignment_id>/<student_JSON_str>')
-def check_answers(assignment_id, student_JSON_str):
+@app.post('/check_answers/<assignment_id>/<pickled_globals>')
+def check_answers(assignment_id, pickled_globals):
+
 	# instantiates key
-	def key_gen(assignment_id):
-		import key
-		answer_key = key.Key(f'keys/{assignment_id}')
-		return answer_key
+	import key
+	answer_key = key.Key(f'keys/{assignment_id}.JSON')
 
-	key = key_gen('001')
+	import dill
+	return pickled_globals.encode('ISO-8859-1')
 
-	return 'Key generated and ready for comparing student data.'
+	return globals_dict
+
+
+	return 'Loaded key, globals were deserialized, and logic ready for comparing student data with key.'
 	# data = request.form['req']
 	# decoded_pickle = base64.b64decode(data)
 	# new_func = pickle.loads(decoded_pickle)

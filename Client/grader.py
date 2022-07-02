@@ -1,13 +1,15 @@
 import requests
+import json
+import dill
 
 grader_url = ""
 
 class create_grader:
-	def __init__(self, glob, assignmentid, studentid):
+	def __init__(self, glob, assignmentid, student_id):
 		self.glob = glob
 		self.assignment_id = assignmentid
-		self.student_id = studentid
-
+		self.student_id = student_id
+		
 		# check to see if a valid notebook
 		r = requests.get(f"http://127.0.0.1:5000/notebook_id/{assignmentid}")
 		valid_notebook_id  = (r.text == "valid notebook")
@@ -22,10 +24,14 @@ class create_grader:
 		# This is run when answers should be checked
 		# TODO
 
-		student_JSON_str = requests.post(f"http://127.0.0.1:5000/{self.get_assignid()}/{self.get_student_id()}")
-		graded_assignment = requests.post(f"http://127.0.0.1:5000/check_answers/{self.get_assignid()}/{student_JSON_str}")
+		# what needs to happen: 1. we will use a get request to get how many probems there are in this assignment and what their var names are. 
+		# 						2. we will pass self.glob and create a new dict of ONLY the assignment's problems as provided by the student.
+		#						3. the student dictionary will then be pickled and decoded
+		#						4. the decoded pickled obj will be sent via a post request to the server.
+		#						5. the server will encode the object and depickle it.
+		#						6. the server will grade the answers.
 		
-		return graded_assignment.text
+		raise NotImplementedError('Josh is still working on this. I have an idea.')
 
 
 	def __send_answers(self):
