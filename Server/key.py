@@ -1,8 +1,7 @@
-class TestCase():
-    def __init__(self, inputs: list, output, number : int):
+class Test_Case():
+    def __init__(self, inputs, output):
         self.inputs = inputs
         self.outputs = output
-        self.num = number
 
     def get_inputs(self):
         return self.inputs
@@ -10,49 +9,55 @@ class TestCase():
     def get_outputs(self):
         return self.outputs
 
-    def get_num(self):
-        return self.num
-
     def __repr__(self):
         return (f'This test case supplies {self.get_inputs} as inputs and has an expected output of {self.get_outputs}.')
 
-class Problem():
-    def __init__(self, testcases: list[TestCase], number : int, assignment_id: int):
-        self.testcases = testcases
-        self.number = number
-        self.id = assignment_id
+class Equality_Check():
+    def __init__(self, solution):
+        self.solution = solution
+    
+    def get_solution(self):
+        return self.solution
 
-    def get_testcases(self):
-        return self.testcases[:]
+    def __repr__(self):
+        return (f'This equality check has an expected output of {self.get_solution()}.')
+
+class Problem():
+    def __init__(self, checking_data: list, number: int, check_type: str, var_name: str):
+        self.checking_data = checking_data
+        self.number = number
+        self.check_type = check_type
+        self.var_name = var_name
+
+    def get_checking_data(self):
+        return self.checking_data[:]
 
     def get_number(self):
         return self.number
 
-    def add_tc(self, tc: TestCase):
-        if type(tc) != TestCase:
-            raise TypeError('You can only add testcases!')
-
-        else:
-            testcases = self.get_testcases()
-            testcases.append(tc)
-            
-            self.testcases = testcases
+    def get_check_type(self):
+        return self.check_type
+    
+    def get_var_name(self):
+        return self.var_name
 
     def __repr__(self):
-        return (f'This is problem {self.get_number()} for assignment {self.id} with {len(self.get_testcases())} test case(s)')
+        return (f'This is problem {self.get_number()} with function name {self.get_var_name()}, with {len(self.get_checking_data())} {self.get_check_type()}(s).')
 
 class Key():
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, valid_assignment_id, valid_student_id):
         self.filename = filename
+        self.valid_student_id = valid_student_id
+        self.valid_assignment_id = valid_assignment_id
 
         try:
             data = self.load_information(self.filename)
             self.data = data
-            self.id = data['id']
+            self.nb_id = data['notebook_id']
             print(f'Data retrieved and saved successfully.')
 
         except:
-            raise Exception('Could not load the intended file. File not found.')
+            raise Exception('Could not load the intended key.')
         
         try:
             key_data = self.process_data(data)
@@ -76,72 +81,31 @@ class Key():
 
     def process_data(self, data: dict):
         print('Now processing data.')
+        list_problems = []
 
-        n = 0 # check to see how many problems there are.
-        while(True):
-            n += 1
-            if (f'problem{n}') not in data:
-                n -= 1
-                break
-
-        if n == 0:
-            raise Exception('No problem data found. Please check your JSON file.')
-        
-        print(f'Found {n} problems.')
-
-        list_prob = []
-
-        for prob_n in range(1,n+1):
-            problem_data = data[f'problem{prob_n}']
-
-            m = 0 # check to see how many test cases there are.
-            while(True):
-                m += 1
-                if (f'tc{m}') not in problem_data:
-                    m -= 1
-                    break
-
-            if m == 0:
-                raise Exception('No test case data found. Please check your JSON file.')
-
-            print()
-            print(f'Found {m} test cases for problem {prob_n}.')
-
-            prob_tcs = []
+        for problem in data['problems']:
             
-            for tc_n in range(1,m+1):
-                tc_data = problem_data[f'tc{tc_n}']
-                tc_inputs = tc_data['input']
+            if problem['checking_type'] == 'Test_Case':
+                list_tc = []
 
-                if type(tc_inputs) is str and tc_inputs[0:2] == 'f/':
-                    tc_inputs = eval(tc_inputs[2:] + '()')
+                for test_case in problem['checking_data']:
+                    list_tc.append(Test_Case(test_case['input'],test_case['output']))
 
-                elif type(tc_inputs) is list:
-                    tc_inputs = self.PARSE_for_func(tc_inputs)
+                list_problems.append(Problem(list_tc, problem["problem_number"], problem['func_type'], problem['func_name']))
 
-                prob_tcs.append(TestCase(tc_inputs, tc_data['output'], tc_n))
-                print(f'Test Case {tc_n} processed successfully.')
+            elif problem['checking_type'] == 'Equality_Check':
+                list_ec = []
 
-            list_prob.append(Problem(prob_tcs, prob_n, self.get_id()))
-            print(f'Problem {prob_n} processed successfully.')
+                for equality_check in problem['checking_data']:
+                        list_ec.append(Equality_Check(equality_check['solution']))
 
-        return list_prob
+                list_problems.append(Problem(list_ec, problem["problem_number"], problem['checking_type'], problem['func_name']))
 
-    def PARSE_for_func(self, list):
-        for i in range(len(list)):
-            if type(list[i]) is str and list[i][0:2] == 'f/':
-                list[i] = eval(list[i][2:] + '()')
-
-            elif type(list[i]) is list:
-                list[i] = self.PARSE_for_func(list[i])
-
-        return list
-        
-    def get_id(self):
-        return self.id
+        print('Data processed.')
+        return list_problems
 
     def get_problems(self):
         return self.problems
 
     def __str__(self):
-        return (f'This is the key data for assignment {self.id}')
+        return (f'This is the key data for assignment {self.nb_id}')

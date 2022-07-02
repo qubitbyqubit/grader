@@ -1,6 +1,4 @@
 import requests
-import json
-import dill
 
 grader_url = ""
 
@@ -22,16 +20,27 @@ class create_grader:
 
 	def __call__(self):
 		# This is run when answers should be checked
-		# TODO
-
-		# what needs to happen: 1. we will use a get request to get how many probems there are in this assignment and what their var names are. 
-		# 						2. we will pass self.glob and create a new dict of ONLY the assignment's problems as provided by the student.
+		# How this happens: 1. verify the identity of the caller (done)
+		#						2. get request how many probems there are in this assignment from the key (stored on the back-end) and what each of the method var names are. 
+		# 						2. we will pass self.glob into a search helper function that will find and create a new dict of ONLY the assignment's problems with method names as provided by the key.
 		#						3. the student dictionary will then be pickled and decoded
-		#						4. the decoded pickled obj will be sent via a post request to the server.
+		#						4. the decoded str will be sent via another post request to the server.
 		#						5. the server will encode the object and depickle it.
-		#						6. the server will grade the answers.
+		#						6. the server will grade the answers ont he backend.
+		#						7. the server response, student_grades, will then be printed.
+
+		# step 1: verify the identity of the caller (done)
+
+		if requests.get(f'http://127.0.0.1:5000/notebook_id/{self.get_assignment_id()}').text == 'False':
+			raise Exception('Notebook ID not found. Internal error.')
+
+		elif requests.get(f'http://127.0.0.1:5000/check_id/{self.get_student_id()}').text == 'False':
+			raise Exception('Error checking responses.')
+
+		# step 2: get request how many probems there are in this assignment from the key (stored on the back-end) and what each of the method var names are.
+		# TODO
 		
-		raise NotImplementedError('Josh is still working on this. I have an idea.')
+		raise NotImplementedError('Still working on this. Please dont change. - Josh')
 
 
 	def __send_answers(self):
@@ -71,8 +80,8 @@ class create_grader:
 			# Invalid Student ID
 			print("Student ID not found")
 
-	def get_assignid(self):
-		return self.assignment_id
-
 	def get_student_id(self):
 		return self.student_id
+
+	def get_assignment_id(self):
+		return self.assignment_id

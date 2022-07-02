@@ -1,16 +1,24 @@
-{
-	"READ_ME" : "Enter a problem as------- problemn : {tcn : {input : data, output: data},...} and enter functions as strings prefaced by a f/",
+{ "notebook_id" : false,
+	
+	"student_id" : false,
 
-	"id" : "001",
+	"problems" : [
+	  { "problem_number" : 1, 
+		"func_name" : "roman_to_int", 
+		"checking_type" : "Test_Case", 
+		"checking_data" : [
+		  {"input": "III", "output": 3}, 
+		  {"input": "LVIII", "output": 58}, 
+		  {"input": "MCMXCIV", "output": 1994} ]
+	  }, 
 
-	"problem1" : {
-		"tc1" : {"input" : "III", "output" : 3},
-		"tc2" : {"input" : "LVIII", "output" : 58}, 
-		"tc3" : {"input" : "MCMXCIV", "output" : 1994} },
+	  {"problem_number": 2, 
+		"func_name": "return_list", 
+		"checking_type": "Equality_Check", 
+		"checking_data": [
+		  {"solution": [1,2,3,4,5]} 
+		]
+	  }
 
-	"problem2" : { 
-		"tc1" : {"input" : ["a", "b"], "output" : false}, 
-		"tc2" : {"input" : ["aa", "ab"], "output" : false}, 
-		"tc3" : {"input" : ["aa", "aab"], "output" : true} }
-
+	]
 }
