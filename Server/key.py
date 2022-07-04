@@ -1,5 +1,5 @@
 class Test_Case():
-    def __init__(self, inputs, output):
+    def __init__(self, inputs: dict, output):
         self.inputs = inputs
         self.outputs = output
 
@@ -88,7 +88,7 @@ class Key():
                 list_tc = []
 
                 for test_case in problem['checking_data']:
-                    list_tc.append(Test_Case(test_case['input'],test_case['output']))
+                    list_tc.append(Test_Case(test_case['inputs'],test_case['output']))
 
                 list_problems.append(Problem(list_tc, problem["problem_number"], problem['checking_type'], problem['func_name']))
 

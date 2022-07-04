@@ -3,22 +3,23 @@
 	"student_id" : false,
 
 	"problems" : [
-	  { "problem_number" : 1, 
-		"func_name" : "roman_to_int", 
-		"checking_type" : "Test_Case", 
-		"checking_data" : [
-		  {"input": "III", "output": 3}, 
-		  {"input": "LVIII", "output": 58}, 
-		  {"input": "MCMXCIV", "output": 1994} ]
-	  }, 
 
-	  {"problem_number": 2, 
-		"func_name": "return_list", 
-		"checking_type": "Equality_Check", 
-		"checking_data": [
-		  {"solution": [1,2,3,4,5]} 
-		]
-	  }
+		{ "problem_number" : 1, 
+			"func_name" : "roman_to_int", 
+			"checking_type" : "Test_Case", 
+			"checking_data" :[
+				{"inputs": {"s" : "III"}, "output": 3}, 
+				{"inputs": {"s" : "LVIII"}, "output": 58}, 
+				{"inputs": {"s" : "MCMXCIV"}, "output": 1994} ] 
+		}, 
+
+		{ "problem_number": 2, 
+			"func_name": "return_list", 
+			"checking_type": "Equality_Check", 
+			"checking_data": [
+				{"solution": [1,2,3,4,5]},
+				{"solution" : [1,2,3,4,5]} ]
+		}
 
 	]
 }
