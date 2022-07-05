@@ -32,8 +32,6 @@ class create_grader:
 		# 						2. we will pass self.glob into a search helper function that will find and create a new dict of ONLY the assignment's problems with method names as provided by the key (done)
 		#						3. the student dictionary will then be turned into a pickle-base64 str (done)
 		#						4. the encrypted dict will be sent via another post request to the server (done)
-								
-
 		# step 1
 		r = requests.get(f'http://127.0.0.1:5000/problem_names/{self.get_notebook_id_check()}/{self.get_student_id_check()}/{self.get_assignment_id()}').text
 		expected_problems = json.loads(r)
@@ -113,8 +111,6 @@ class create_grader:
 		return self.glob
 
 	def find_problems(self, stud_glob, expected_problems):
-		# def roman_to_int(s: str) -> int:\n
-
 		prob_names = []
 		student_work = {}
 
