@@ -1,5 +1,5 @@
 flask
 requests
-base64
-json
+pybase64
 cloudpickle
+pandas
