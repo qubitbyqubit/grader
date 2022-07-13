@@ -14,7 +14,7 @@ def structure_api(student_id, notebook_id, metadata, problems):
 	return api_dict
 
 def verify_student(user_id):
-	df = pd.read_csv("student_data/canvas_student_data.csv")
+	df = pd.read_csv("~/Desktop/tcs/canvas_api_explore/student_data.csv")
 	try:
 		row = df[df['user_id'].str.contains(user_id)]
 		first_name = row["first_name"][0]
