@@ -8,7 +8,8 @@
 			"checking_data" :[
 				{"inputs": ["III"], "output": 3}, 
 				{"inputs": ["LVIII"], "output": 58}, 
-				{"inputs": ["MCMXCIV"], "output": 1994} ] 
+				{"inputs": ["MCMXCIV"], "output": 1994} ],
+			"points" : 3.0
 		}, 
 
 		{ 
@@ -16,9 +17,10 @@
 			"func_name": "return_list", 
 			"checking_type": "Equality_Check", 
 			"checking_data": [
-				[1,2,3,4,5],
-				[1,2,3,4,5] 
-			]
+				[1,2,3,4,5]
+			],
+			"points" : 1.0
 		}
-	]
+	],
+	"net_points" : 4.0
 }

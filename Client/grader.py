@@ -34,7 +34,7 @@ class create_grader:
         response = self.use_api(self.notebook_id, self.student_id,
                              method="check")
         self.verify(response)
-        for grade_response, color in response["problems"]:
+        for grade_response, color, score, num in response["problems"]:
             self.color_print(grade_response, color)
             
             
@@ -98,24 +98,23 @@ class create_grader:
         
     def submit(self):
         # Ask Student for their ID number
-        given_id = input("What is your student ID?")
+        given_id = input("Enter your student ID to begin submitting your assignment: ")
 
-        # Verify that the ID number exists and get student name for the given ID number
-        if student_name is not None:
+        # Verify that the ID number is correct and get the student name for the given ID number
+        if given_id == self.student_id:
             confirm = input(f"Confirm you are: {self.student_name} (Y/N)")
             if confirm in ["Y", "y", "Yes", "yes"]:
                 response = self.use_api(self.student_id, self.notebook_id, method="submit")
                 self.verify(response)
-                for problem in response["problems"]:
-                    print(problem["grade_response"])
+                return response['problems']
                 
             else:
                 # Student typed in an incorrect but valid ID number 
                 # (possible vulnerability could this be used to search for other students IDs?)
-                print("Submit Aborted")
+                print("Submit Aborted.")
         else:
             # Invalid Student ID
-            print("Student ID not found")
+            print("Student ID not found.")
             
     def color_print(self, text, color):
         if color == "g":

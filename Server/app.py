@@ -60,8 +60,8 @@ def check(notebook_id, student_id):
 
 	return json.dumps(data)
 
-@app.post('/submit/<notebook_id>/<student_id>')
-def submit(notebook_id, student_id):
+@app.post('/submit/<student_id>/<notebook_id>')
+def submit(student_id, notebook_id):
 	student = verify_student(student_id)
 	assignment_key = get_assignment_key(notebook_id)
 	
@@ -71,7 +71,7 @@ def submit(notebook_id, student_id):
 	else:
 		form_data = json.loads(request.form['client_data'])
 		pickled_problems = base64.b64decode(form_data["problems"].encode('ascii'))
-		student_solutions = pickle.loads(pickled_problems)
+		b64_pickled = pickle.loads(pickled_problems)
 
 		metadata = {"student_name": student,
 					"notebook_name": assignment_key.name},
