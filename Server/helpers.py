@@ -280,7 +280,7 @@ def grade(student_solutions, assignment_key, submit=False, sis_id=None):
 		submit_attempt = submit_to_canvas(grade_responses, assignment_key, sis_id)
 		if type(submit_attempt) == bool:
 			if submit_attempt == True:
-				return ("Submitted Successfully!", "g")
+				return ("Submitted Successfully! You may login to Canvas to view your submission.", "g")
 			elif submit_attempt == False:
 				return ("Error submitting to canvas", "r")
 
