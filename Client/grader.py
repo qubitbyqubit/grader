@@ -106,7 +106,7 @@ class create_grader:
             if confirm in ["Y", "y", "Yes", "yes"]:
                 response = self.use_api(self.student_id, self.notebook_id, method="submit")
                 self.verify(response)
-                return response['problems']
+                self.color_print(response['problems'][0],response['problems'][1])
                 
             else:
                 # Student typed in an incorrect but valid ID number 

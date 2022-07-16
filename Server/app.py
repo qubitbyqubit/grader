@@ -75,7 +75,7 @@ def submit(student_id, notebook_id):
 
 		metadata = {"student_name": student,
 					"notebook_name": assignment_key.name},
-		graded_problems = grade(b64_pickled, assignment_key, submit=True)
+		graded_problems = grade(b64_pickled, assignment_key, submit=True, sis_id=student_id)
 
 	data = structure_api(student_id=student, 
 						 notebook_id=assignment_key.id,
