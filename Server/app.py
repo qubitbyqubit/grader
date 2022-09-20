@@ -30,7 +30,6 @@ def verify(notebook_id, student_id):
 			problems=assignment_key.expected_problems
 			)
 
-	
 	return json.dumps(data)
 
 @app.post('/check/<notebook_id>/<student_id>')

@@ -71,7 +71,9 @@ def submit_to_canvas(graded_questions, assignment_key, sis_id):
 		question_scores[i+1] = hash_canvas(question_scores[i+1])
 
 	#Let's get the quiz question information from canvas and extract all the question ids so we know what we're answering.
-	questions = use_canvas_api(f'https://qxq.instructure.com/api/v1/courses/{assignment_key.course_id}/quizzes/{assignment_key.quiz_id}/questions','GET')
+	# We need the questions object and IDs
+	# if these url slugs dont change, they should be hard coded into the use_canvas_api function
+	status_code, questions = use_canvas_api(f'https://qxq.instructure.com/api/v1/courses/{assignment_key.course_id}/quizzes/{assignment_key.quiz_id}/questions','GET')
 
 	if questions[0] == 200:
 		quiz_questions = {} #id : answers
@@ -116,8 +118,8 @@ def submit_to_canvas(graded_questions, assignment_key, sis_id):
 			val_token = session['validation_token']
 
 	canvas_readable = {}
-
-	for answer, question in zip(hashed_answers,quiz_questions): # loop through answers provided by student and the quiz_questions as recorded on canvas.
+	# loop through answers provided by student and the quiz_questions as recorded on canvas.
+	for answer, question in zip(hashed_answers, quiz_questions): 
 		selected_ids = [] # store a place to see what answers the student provided
 		
 		for answer_choice in quiz_questions[question]:
@@ -146,7 +148,7 @@ def submit_to_canvas(graded_questions, assignment_key, sis_id):
 		if response != 200:
 			return response[1]
 
-		else:
+		else: # dont need this
 			pass
 
 	# Ok! We answered the quiz. Let's submit our work!
@@ -158,11 +160,17 @@ def submit_to_canvas(graded_questions, assignment_key, sis_id):
 
 	response = use_canvas_api(f'https://qxq.instructure.com/api/v1/courses/{assignment_key.course_id}/quizzes/{assignment_key.quiz_id}/submissions/{session_id}/complete?as_user_id=sis_user_id:{sis_id}','POST-SUBMIT',form)
 
+
+	'''
+	This is bad code, response already returns a bool, return (response == 200)
+	'''
 	if response == 200:
 		return True
 	
 	else:
 		return False
+
+	return (response == 200)
 
 def hash_canvas(score: int):
 	private_hash = {
@@ -178,6 +186,13 @@ def hash_canvas(score: int):
 		9 : -4634720110052923544,
 		10 : 2429753604653725074
 		}
+
+	'''
+	Why is there an edge case for the 0 score?
+
+	for a score for a score of 10 (which should not be possible)
+	this would append to a list of hashed values numbers of 1, 2, 3, ... , 10
+	'''
 	
 	if score == 0:
 		return [private_hash[0]]
@@ -189,6 +204,9 @@ def hash_canvas(score: int):
 			hashes.append(str(private_hash[i]))
 
 		return hashes
+
+	# Cleaner version:
+	hashes = [str(private_hash[i]) for i in score]
 
 def attempt_problem(student_func, test_case):
 	#TODO Implement a runtime watcher (in case student code loops forever)
@@ -277,6 +295,7 @@ def grade(student_solutions, assignment_key, submit=False, sis_id=None):
 		points += accumulated_points
 
 	if submit:
+		# this should send a list of scores (0 or 1) to submit to canvas.
 		submit_attempt = submit_to_canvas(grade_responses, assignment_key, sis_id)
 		if type(submit_attempt) == bool:
 			if submit_attempt == True:
@@ -301,7 +320,7 @@ def use_canvas_api(url: str, method: str, form=None, sis_id=None,  assignment_ke
         Outputs:
             json_resp: dict, JSON response from the server loaded a dictionary or str of the error message
     '''
-
+    url_slug = "https://qxq.instructure.com/api/v1/courses/"
 	def get_user_id(sis_id):
 		r = requests.get(f'https://qxq.instructure.com/api/v1/accounts/self/users?search_term={sis_id}',headers=headers)
 		r = json.loads(r.content.decode('utf-8'))
