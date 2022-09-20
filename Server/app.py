@@ -7,6 +7,13 @@ from idna import check_label
 
 app = Flask(__name__)
 
+server=False
+
+#Testing
+@app.get("/")
+def index():
+	return "<h1>Hello, World!</h1>"
+
 @app.get('/verify/<notebook_id>/<student_id>')
 def verify(notebook_id, student_id):
 	# This checks for valid student_id and assignment
@@ -85,4 +92,7 @@ def submit(student_id, notebook_id):
 
 # Debug mode for local development
 if __name__ == "__main__":
-	app.run(debug=True)
+	if server:
+		app.run(host='0.0.0.0')
+	else:
+		app.run(debug=True)
