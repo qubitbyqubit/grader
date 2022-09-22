@@ -1,3 +1,5 @@
+from canvas import submit_to_canvas
+
 from email import contentmanager
 from itertools import accumulate
 import cloudpickle as pickle
@@ -60,315 +62,71 @@ class get_assignment_key():
 			expected_problems.append(problem_struct)
 		return expected_problems
 
-def submit_to_canvas(graded_questions, assignment_key, sis_id):
-	# Get Question Score Custom Hashes
-	question_scores = {} # Key : Value. prob_num (1 indexed) to prob_score
-	for elem in graded_questions:
-		prob_num = elem[3] + 1
-		question_scores[prob_num] = elem[2]
-
-	for i in range(len(question_scores)):
-		question_scores[i+1] = hash_canvas(question_scores[i+1])
-
-	#Let's get the quiz question information from canvas and extract all the question ids so we know what we're answering.
-	# We need the questions object and IDs
-	# if these url slugs dont change, they should be hard coded into the use_canvas_api function
-	status_code, questions = use_canvas_api(f'https://qxq.instructure.com/api/v1/courses/{assignment_key.course_id}/quizzes/{assignment_key.quiz_id}/questions','GET')
-
-	if questions[0] == 200:
-		quiz_questions = {} #id : answers
-		for question in questions[1]:
-   			quiz_questions[question['id']] = question['answers']
-	
-	else: 
-		return questions[1]
-
-	# #Ok so I've got my question ids and answers, im ready to start submitting. 
-	# Let's work now on starting a quiz submission session.
-	form = {
-     	"access_code" : assignment_key.access_code
-	}
-
-	quiz_submission = use_canvas_api(f'https://qxq.instructure.com/api/v1/courses/{assignment_key.course_id}/quizzes/{assignment_key.quiz_id}/submissions?as_user_id=sis_user_id:{sis_id}','POST',form, sis_id=sis_id, assignment_key=assignment_key)
-
-	if quiz_submission[0] == 200:
-		quiz_submission = quiz_submission[1]
-
-	else:
-		return quiz_submission[1]
-
-	#Change scores into a list of str(int) hashes.
-
-	hashed_answers = []
-
-	for problem in graded_questions:
-		hashed_answers.append(hash_canvas(problem[2]))
-
-	# ok, let's get some important info from the quiz_submission.
-
-	session_id = None
-	attempt = None
-	val_token = None
-
-	for session in quiz_submission['quiz_submissions']: 
-   		
-		if session['quiz_id'] == assignment_key.quiz_id:
-			session_id = session['id']
-			attempt = session['attempt']
-			val_token = session['validation_token']
-
-	canvas_readable = {}
-	# loop through answers provided by student and the quiz_questions as recorded on canvas.
-	for answer, question in zip(hashed_answers, quiz_questions): 
-		selected_ids = [] # store a place to see what answers the student provided
-		
-		for answer_choice in quiz_questions[question]:
-			if answer_choice['text'] in answer:
-				selected_ids.append(answer_choice['id'])
-
-		canvas_readable[question] = selected_ids
-
-	# Now, let's answer each question using an augmented for loop. 
-	# Note the change in URL because we're adding each answer to our QS session
-	for question in canvas_readable:
-		
-		form = {
-			"attempt": attempt,
-			"validation_token": val_token,
-			"quiz_questions": [{
-				"id": question,
-				"flagged" : False,
-				"answer": canvas_readable[question]
-			}],
-			'access_code' : assignment_key.access_code
-		}
-		
-		response = use_canvas_api(f'https://qxq.instructure.com/api/v1/quiz_submissions/{session_id}/questions?as_user_id=sis_user_id:{sis_id}','POST',form)[0]
-
-		if response != 200:
-			return response[1]
-
-		else: # dont need this
-			pass
-
-	# Ok! We answered the quiz. Let's submit our work!
-	form = {
-		"attempt" : attempt,
-		"validation_token" : val_token,
-		"access_code" : assignment_key.access_code
-	}
-
-	response = use_canvas_api(f'https://qxq.instructure.com/api/v1/courses/{assignment_key.course_id}/quizzes/{assignment_key.quiz_id}/submissions/{session_id}/complete?as_user_id=sis_user_id:{sis_id}','POST-SUBMIT',form)
-
-
-	'''
-	This is bad code, response already returns a bool, return (response == 200)
-	'''
-	if response == 200:
-		return True
-	
-	else:
-		return False
-
-	return (response == 200)
-
-def hash_canvas(score: int):
-	private_hash = {
-		0 : -2691568277792965992,
-		1 : 1395875967255624137,
-		2 : 7754571846373957919,
-		3 : 6264763353947146257,
-		4 : -2016820986130583684,
-		5 : 5006457216414624622,
-		6 : -2911142595553320317,
-		7 : 2384990490830577609,
-		8 : -4260945184859472238,
-		9 : -4634720110052923544,
-		10 : 2429753604653725074
-		}
-
-	'''
-	Why is there an edge case for the 0 score?
-
-	for a score for a score of 10 (which should not be possible)
-	this would append to a list of hashed values numbers of 1, 2, 3, ... , 10
-	'''
-	
-	if score == 0:
-		return [private_hash[0]]
-
-	else:
-		hashes = []
-
-		for i in range(1,score+1):
-			hashes.append(str(private_hash[i]))
-
-		return hashes
-
-	# Cleaner version:
-	hashes = [str(private_hash[i]) for i in score]
-
 def attempt_problem(student_func, test_case):
 	#TODO Implement a runtime watcher (in case student code loops forever)
 	error_message = None
 	try:
 		result = student_func(*test_case)
 	except Exception as e:
-		error_message = f"Exception: {e.message}, Arguments: {e.args}"
+		result = None
+		error_message = f"Runtime Error \n Exception: {e.message}, Arguments: {e.args}"
+	# for future runtime watcher
+	if False:
+		error_message = f"Timeout Error. Your solution took too long to run (>2 minutes)"
 	return (result, error_message)
 
-def grade(student_solutions, assignment_key, submit=False, sis_id=None):
-	grade_responses = []
-	points = 0
-	
+
+def grade_test_case(student_prob, key_prob):
+	response = ""
+	for num, test_case in enumerate(key_prob["checking_data"]):
+		student_func = student_prob["variable_data"]
+		result, error_message = attempt_problem(student_func, tuple(test_case["inputs"]))
+		if result == None:
+			response += f'Failed on Test Case {num}'
+			response += f"Function failed with error: {error_message}\n"
+			return (0, (response, "r"))
+		elif (result != test_case["output"]):
+			line = [
+			"-"*50,
+			f'Failed on Test Case {num}'
+			f'Your function ran, but it produced an unexpected result.',
+			f'Test Inputs:{tuple(test_case["inputs"])}',
+			f'Expected outputs: {test_case["output"]}',
+			f'Received outputs: {result}',
+			"-"*50]
+			response += ("  \n").join(line)
+			return (0, (response, "r"))
+		else:
+			response += f"\tPassed Test Case {num}!\n"
+	return (1, (response, "g"))
+
+def grade_equality_check(student_prob, key_prob):
+	if (student_prob["variable_data"] in key_prob["checking_data"]):
+		return (1, ("Correct!", "g"))
+	else:
+		return (0, ("Your solution is not in the answer key set.", "g"))
+
+
+def grade(student_solutions, assignment_key):
+	scores, grade_responses = [], []	
 	# check lengths are the same
 	assert(len(student_solutions) == len(assignment_key.problem_key))
-
-	# Iterate through the solution key and student problem and construct a grade
-	# Response.
+	# Iterate through the student problems and the key problems 
 	for student_prob, key_prob in zip(student_solutions, assignment_key.problem_key):
-		color_dict = {"correct":"g","incorrect":"r"}
-		accumulated_points = 0
-		reason = ""
+		comment = (f"Checking Question {key_prob['problem_number']}", "")
+		grade_responses.append(comment)
 		if student_prob["variable_data"] == None:
 			# No variable found
-			mark = "incorrect"
-			reason = f"Unable to find a variable called: {student_prob['variable_name']}"
+			score, gr = 0, (f"Unable to find a variable called: {student_prob['variable_name']}", "r")
 		else:
-			# Valid variable found
-
-			# Test case style of problem
+			# Determine checking type
 			if key_prob["checking_type"] == "Test_Case":
-				# Iterate through the test cases and check equality
-				mark = "correct"
-				for test_case in key_prob["checking_data"]:
-					student_func = student_prob["variable_data"]
-					result, error_message = attempt_problem(student_func, tuple(test_case["inputs"]))
-					if result == None:
-						if error_message == "timeout":
-							reason =f"Your solution took too long to run (>1 minute)"
-							mark = "incorrect"
-						else:
-							reason = f"Function failed with error: {error_message}"
-							mark = "incorrect"
-					else:
-						if (result != test_case["output"]):
-							
-							line = [
-							"-"*50, 
-							f'Your function ran, but it produced an unexpected result.',
-							f'Test Inputs:{tuple(test_case["inputs"])}',
-							f'Expected outputs: {test_case["output"]}',
-							f'Received outputs: {result}',
-							"-"*50]
-							reason = ("  \n").join(line)
-							mark = "incorrect"
-				
-					if mark == "correct":
-						accumulated_points += 1
-
-			# Equality Check Type
+				score, gr = grade_test_case(student_prob, key_prob)
 			elif key_prob["checking_type"] == "Equality_Check":
-				accumulated_points = 0
-
-				if (student_prob["variable_data"] in key_prob["checking_data"]):
-					mark = "correct"
-					accumulated_points += 1
-				else:
-					reason = f"Your solution is not in the answer key set."
-					mark = "incorrect"
-
-			# Completion Check Type
-			elif key_prob["checking_type"] == "Completion":
-				mark = "correct"
-				accumulated_points += 1
+				score, gr = grade_equality_check(student_prob, key_prob)
 			else:
-				raise Exception("Broken Key")
+				score, gr = 0, (f"Server Error: Unknown check type: {key_prob['checking_type']}", '')
+		scores.append(score) 
+		grade_responses.append(gr)
 
-		# Record grade and remark for a given problem
-		if mark == 'incorrect':
-			remark = f'Problem {student_prob["problem_number"]} is {mark}: {accumulated_points*1.0} of {key_prob["points"]} points earned!\n{reason}\n{"-"*50}'
-		elif mark =='correct':
-			remark = f'Problem {student_prob["problem_number"]} is {mark}: {accumulated_points*1.0} of {key_prob["points"]} points earned!\n{"-"*50}'
-		
-		grade_responses.append((remark, color_dict[mark], accumulated_points, student_prob["problem_number"]))
-		points += accumulated_points
-
-	if submit:
-		# this should send a list of scores (0 or 1) to submit to canvas.
-		submit_attempt = submit_to_canvas(grade_responses, assignment_key, sis_id)
-		if type(submit_attempt) == bool:
-			if submit_attempt == True:
-				return ("Submitted to Canvas successfully! Great job!", "g")
-			elif submit_attempt == False:
-				return ("Error submitting to canvas", "r")
-
-		else:
-			return (submit_attempt, "r")
-	
-	else:
-		grade_responses.append((f"Final score: {points*1.0} of {assignment_key.net_points}: {points * 100 /assignment_key.net_points}%", 'b', None, student_prob["problem_number"]))
-		return grade_responses
-
-def use_canvas_api(url: str, method: str, form=None, sis_id=None,  assignment_key=None):
-	'''
-        Inputs: 
-            url : str, 'https://...'
-            method: str, HTTPS GET/POST and POST-SUBMIT as a string
-			form: dict, Data that is needed for the requests to the Canvas API. Defaults to None.
-
-        Outputs:
-            json_resp: dict, JSON response from the server loaded a dictionary or str of the error message
-    '''
-    url_slug = "https://qxq.instructure.com/api/v1/courses/"
-	def get_user_id(sis_id):
-		r = requests.get(f'https://qxq.instructure.com/api/v1/accounts/self/users?search_term={sis_id}',headers=headers)
-		r = json.loads(r.content.decode('utf-8'))
-
-		for user in r:
-			if user['sis_user_id'] == sis_id:
-				return user['id']
-
-		return None
-
-	import requests
-	# Setup Authorization using GABBIE's Account Token
-	headers = {"Authorization": "Bearer " + '18895~DvviabEteMj6Z0pk2Zgddh3LbR5Q82vGW1iqhvE0ZN0nlXQO4O3jNi8TiKnqxrn9'}
-	
-	# Make Request
-	response = None
-	if method == "GET":
-		response = requests.get(url,headers=headers,json=form)
-
-	elif method == "POST" or method == 'POST-SUBMIT':
-		response = requests.post(url,headers=headers,json=form)
-
-	# Handle Response
-	if response.status_code == 200 and method != 'POST-SUBMIT':
-		return (response.status_code, json.loads(response.content.decode('utf-8')))
-
-	elif response.status_code == 200 and method == 'POST-SUBMIT':
-		return response.status_code
-
-	elif response.status_code == 409 and method == "POST" and (sis_id  != None and assignment_key != None):
-		# troubleshoot
-		user_id = get_user_id(sis_id)
-
-		submissions = requests.get(f'https://qxq.instructure.com/api/v1/courses/{assignment_key.course_id}/quizzes/{assignment_key.quiz_id}/submissions', headers=headers)
-		submissions = json.loads(submissions.content.decode('utf-8'))['quiz_submissions']
-
-		matches = None
-
-		for elem in submissions:
-			if elem['user_id'] == user_id:
-				matches = elem
-				break
-
-		if matches['workflow_state'] == 'complete' and elem['attempts_left'] == 0:
-			return  (409, 'Code 409: Conflict. No more attempts allowed. Please contact your instructor to allow more attempts.')
-
-		elif matches['workflow_state'] == 'untaken':
-			return  (409, 'Code 409: Conflict. Autograder has detected potential cheating!')
-
-	else:
-		return (response.status_code, f"There was a {response.status_code} response from Canvas and could not diagnose the problem. Retry or please contact your instructor.")
+	return (scores, grade_responses)
